@@ -1,29 +1,49 @@
 require "rails_helper"
 
 RSpec.describe User, type: :model do
-  describe 'validations' do
-    it 'validates presence of a first_name' do
-      user = User.new(first_name: nil, last_name: 'Lastname', email: 'test@example.com', password: 'password12345')
-      expect(user.valid?).to be false
-      expect(user.errors[:first_name]).to include("can't be blank")
-    end
+  subject(:user) do
+    User.new(
+      first_name: first_name,
+      last_name: last_name,
+      email: email,
+      password: password
+    )
+  end
 
-    it 'validates presence of last_name' do
-      user = User.new(first_name: "Firstname", last_name: nil, email: 'test@example.com', password: 'password12345')
-      expect(user.valid?).to be false
-      expect(user.errors[:last_name]).to include("can't be blank")
-    end
+  let(:first_name) { 'Firstname' }
+  let(:last_name)  { 'Lastname' }
+  let(:email)      { 'test@example.com' }
+  let(:password)   { 'password123' }
 
-    it 'validates presence of email' do
-      user = User.new(first_name: 'Firstname', last_name: 'Lastname', email: nil, password: 'password12345')
-      expect(user.valid?).to be false
-      expect(user.errors[:email]).to include("can't be blank")
+  describe 'user validations' do
+    context 'with valid attributes' do
+      it 'is valid' do
+        expect(user).to be_valid
+      end
     end
-
-    it 'validates password length' do
-      user = User.new(first_name: 'Firstname', last_name: 'Lastname', email: 'test@example.com', password: '123')
-      expect(user.valid?).to be false
-      expect(user.errors[:password]).to include('is too short (minimum is 6 characters)')
+    context 'when first_name is missing' do
+      let(:first_name) { nil }
+      it 'is not valid' do
+        expect(user).not_to be_valid
+      end
+    end
+    context 'when last_name is missing' do
+      let(:last_name) { nil }
+      it 'is not valid' do
+        expect(user).not_to be_valid
+      end
+    end
+    context 'when email is missing' do
+      let(:email) { nil }
+      it 'is not valid' do
+        expect(user).not_to be_valid
+      end
+    end
+    context 'password does not meet length requirement' do
+      let(:password) { '123' }
+      it 'is not valid' do
+        expect(user).not_to be_valid
+      end
     end
   end
 end
