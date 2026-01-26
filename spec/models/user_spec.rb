@@ -21,28 +21,30 @@ RSpec.describe User, type: :model do
         expect(user).to be_valid
       end
     end
-    context 'when first_name is missing' do
-      let(:first_name) { nil }
-      it 'is not valid' do
-        expect(user).not_to be_valid
+    context 'with invalid params' do
+      context 'when first_name is missing' do
+        let(:first_name) { nil }
+        it 'is not valid' do
+          expect(user).not_to be_valid
+        end
       end
-    end
-    context 'when last_name is missing' do
-      let(:last_name) { nil }
-      it 'is not valid' do
-        expect(user).not_to be_valid
+      context 'when last_name is missing' do
+        let(:last_name) { nil }
+        it 'is not valid' do
+          expect(user).not_to be_valid
+        end
       end
-    end
-    context 'when email is missing' do
-      let(:email) { nil }
-      it 'is not valid' do
-        expect(user).not_to be_valid
+      context 'when email is missing' do
+        let(:email) { nil }
+        it 'is not valid' do
+          expect(user).not_to be_valid
+        end
       end
-    end
-    context 'password does not meet length requirement' do
-      let(:password) { '123' }
-      it 'is not valid' do
-        expect(user).not_to be_valid
+      context 'password does not meet length requirement' do
+        let(:password) { '123' }
+        it 'is not valid' do
+          expect(user).not_to be_valid
+        end
       end
     end
   end
