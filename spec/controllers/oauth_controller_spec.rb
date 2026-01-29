@@ -96,5 +96,26 @@ RSpec.describe OauthController, type: :controller do
                 end
             end
         end
+        context 'session storage' do
+            context 'does not store params in session if validation fails' do
+                it 'returns error' do
+                    params = valid_params.except(:client_id)
+                    get :authorize, params: params
+
+                    expect(session[:oauth_params]). to be_nil
+                end
+            end
+            context 'stores params in session if validation passes' do
+                it 'returns success' do
+                get :authorize, params: valid_params
+
+                expect(session[:oauth_params][:client_id]).to eq(valid_params[:client_id])
+                expect(session[:oauth_params][:redirect_uri]).to eq(valid_params[:redirect_uri])
+                expect(session[:oauth_params][:state]).to eq(valid_params[:state])
+                expect(session[:oauth_params][:code_challenge]).to eq(valid_params[:code_challenge])
+                expect(session[:oauth_params][:scope]).to eq(valid_params[:scope])
+                end
+            end
+        end
     end
 end
