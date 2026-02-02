@@ -1,7 +1,9 @@
 require "rails_helper"
 
 RSpec.describe OauthController, type: :controller do
+    include Devise::Test::ControllerHelpers
     describe "GET #authorize" do
+        let(:user) { User.create!(first_name: 'Adam', last_name: 'Smith', email: 'test@example.com', password: 'password12345') }
         let(:valid_params) do
             {
                 response_type: "code",
@@ -13,6 +15,12 @@ RSpec.describe OauthController, type: :controller do
                 code_challenge_method: "S256"
             }
         end
+
+        before do
+            new_user_session_path
+            sign_in(user, scope: :user)
+        end
+
         context "when all params are valid" do
             it "returns success response" do
                 get :authorize, params: valid_params
@@ -31,7 +39,7 @@ RSpec.describe OauthController, type: :controller do
 
                     expect(response).to have_http_status(:bad_request)
                     response_body = JSON.parse(response.body)
-                    expect(response_body["errors"]).to include("response_type must be code")
+                    expect(response_body["errors"]).to include("Response type can't be blank", "Response type is not included in the list")
                 end
             end
 
@@ -42,7 +50,7 @@ RSpec.describe OauthController, type: :controller do
 
                     expect(response).to have_http_status(:bad_request)
                     response_body = JSON.parse(response.body)
-                    expect(response_body["errors"]).to include("client_id is required")
+                    expect(response_body["errors"]).to include("Client can't be blank")
                 end
             end
             context "when redirect_uri is missing" do
@@ -52,7 +60,7 @@ RSpec.describe OauthController, type: :controller do
 
                     expect(response).to have_http_status(:bad_request)
                     response_body = JSON.parse(response.body)
-                    expect(response_body["errors"]).to include("redirect_uri is required")
+                    expect(response_body["errors"]).to include("Redirect uri can't be blank")
                 end
             end
             context "when scope is missing" do
@@ -62,7 +70,7 @@ RSpec.describe OauthController, type: :controller do
 
                     expect(response).to have_http_status(:bad_request)
                     response_body = JSON.parse(response.body)
-                    expect(response_body["errors"]).to include("scope is required")
+                    expect(response_body["errors"]).to include("Scope can't be blank")
                 end
             end
             context "when state is missing" do
@@ -72,7 +80,7 @@ RSpec.describe OauthController, type: :controller do
 
                     expect(response).to have_http_status(:bad_request)
                     response_body = JSON.parse(response.body)
-                    expect(response_body["errors"]).to include("state is required")
+                    expect(response_body["errors"]).to include("State can't be blank")
                 end
             end
             context "when code_challenge is missing" do
@@ -82,7 +90,7 @@ RSpec.describe OauthController, type: :controller do
 
                     expect(response).to have_http_status(:bad_request)
                     response_body = JSON.parse(response.body)
-                    expect(response_body["errors"]).to include("code_challenge is required")
+                    expect(response_body["errors"]).to include("Code challenge can't be blank")
                 end
             end
             context "when code_challenge_method is missing" do
@@ -92,7 +100,7 @@ RSpec.describe OauthController, type: :controller do
 
                     expect(response).to have_http_status(:bad_request)
                     response_body = JSON.parse(response.body)
-                    expect(response_body["errors"]).to include("code_challenge_method must be S256")
+                    expect(response_body["errors"]).to include("Code challenge method can't be blank", "Code challenge method is not included in the list")
                 end
             end
         end
