@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe OauthController, type: :controller do
     include Devise::Test::ControllerHelpers
     describe "GET #authorize" do
-        let(:user) { User.create!(first_name: 'Adam', last_name: 'Smith', email: 'test@example.com', password: 'password12345') }
+        let(:user) { Oauth::User.create!(first_name: 'Adam', last_name: 'Smith', email: 'test@example.com', password: 'password12345') }
         let(:valid_params) do
             {
                 response_type: "code",
@@ -20,15 +20,21 @@ RSpec.describe OauthController, type: :controller do
             new_user_session_path
             sign_in(user, scope: :user)
         end
-
-        context "when all params are valid" do
-            it "returns success response" do
-                get :authorize, params: valid_params
-                expect(response).to have_http_status(:success)
-                expect(JSON.parse(response.body)).to eq({
-                    "success" => true,
-                    "message" => "Params are valid"
-                })
+        context 'with valid params' do
+            context "when user visits authorize endpoint" do
+                it "returns redirect to callback" do
+                    get :authorize, params: valid_params
+                    expect(response).to redirect_to("/oauth/callback")
+                end
+            end
+            context "in callback" do
+                it "returns success response" do
+                    get :callback, params: valid_params
+                    expect(JSON.parse(response.body)).to eq({
+                        "success" => true,
+                        "message" => "Params are valid"
+                    })
+                end
             end
         end
         context 'with invalid params' do
