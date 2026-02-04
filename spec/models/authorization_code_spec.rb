@@ -15,7 +15,7 @@ RSpec.describe Oauth::AuthorizationCode, type: :model do
             code_challenge_method: "S256"
         }
     end
-    
+
     describe 'authorization code creation' do
         context 'with valid attributes' do
             it 'creates an authorization code' do

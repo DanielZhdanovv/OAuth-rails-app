@@ -52,3 +52,4 @@ RSpec.describe ClientConfig, type: :model do
             end
         end
     end
+end
