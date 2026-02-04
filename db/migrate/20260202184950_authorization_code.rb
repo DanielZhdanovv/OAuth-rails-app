@@ -1,6 +1,6 @@
 class AuthorizationCode < ActiveRecord::Migration[8.1]
   def change
-    create_table :authorization_code do |t|
+    create_table :authorization_codes do |t|
       t.string   :code
       t.string   :code_challenge
       t.references :user, null: false, foreign_key: true

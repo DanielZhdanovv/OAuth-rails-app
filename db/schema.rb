@@ -11,15 +11,15 @@
 # It's strongly recommended that you check this file into your version control system.
 
 ActiveRecord::Schema[8.1].define(version: 2026_02_02_184950) do
-  create_table "authorization_code", force: :cascade do |t|
+  create_table "authorization_codes", force: :cascade do |t|
     t.integer "client_config_id", null: false
     t.string "code"
     t.string "code_challenge"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.integer "user_id", null: false
-    t.index ["client_config_id"], name: "index_authorization_code_on_client_config_id"
-    t.index ["user_id"], name: "index_authorization_code_on_user_id"
+    t.index ["client_config_id"], name: "index_authorization_codes_on_client_config_id"
+    t.index ["user_id"], name: "index_authorization_codes_on_user_id"
   end
 
   create_table "client_configs", force: :cascade do |t|
@@ -49,6 +49,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_02_184950) do
     t.index ["reset_password_token"], name: "index_users_on_reset_password_token", unique: true
   end
 
-  add_foreign_key "authorization_code", "client_configs"
-  add_foreign_key "authorization_code", "users"
+  add_foreign_key "authorization_codes", "client_configs"
+  add_foreign_key "authorization_codes", "users"
 end
