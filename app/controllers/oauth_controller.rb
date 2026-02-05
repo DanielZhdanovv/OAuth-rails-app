@@ -15,6 +15,7 @@ class OauthController < ApplicationController
 
             unless user_signed_in?
                 redirect_to new_user_session_path
+                return
             end
             redirect_to oauth_callback_path
         else
