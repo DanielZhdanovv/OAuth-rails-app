@@ -1,6 +1,6 @@
 class OauthController < ApplicationController
     def authorize
-        @authorize_request = AuthorizeRequest.new(authorize_params)
+        @authorize_request = Oauth::AuthorizeRequest.new(authorize_params)
 
         if @authorize_request.valid?
 
