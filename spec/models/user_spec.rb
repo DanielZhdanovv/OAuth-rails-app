@@ -1,8 +1,8 @@
 require "rails_helper"
 
-RSpec.describe User, type: :model do
+RSpec.describe Oauth::User, type: :model do
   subject(:user) do
-    User.new(
+    Oauth::User.new(
       first_name: first_name,
       last_name: last_name,
       email: email,
