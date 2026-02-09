@@ -4,6 +4,7 @@ RSpec.describe OauthController, type: :controller do
     include Devise::Test::ControllerHelpers
     describe "GET #authorize" do
         let(:user) { Oauth::User.create!(first_name: 'Adam', last_name: 'Smith', email: 'test@example.com', password: 'password12345') }
+        let(:client_config) { Oauth::ClientConfig.create!(name: "Test Client", client_id: "test_client", redirect_uri: "http://localhost:3000") }
         let(:valid_params) do
             {
                 response_type: "code",
@@ -21,19 +22,17 @@ RSpec.describe OauthController, type: :controller do
             sign_in(user, scope: :user)
         end
         context 'with valid params' do
-            context "when user visits authorize endpoint" do
-                it "returns redirect to callback" do
-                    get :authorize, params: valid_params
-                    expect(response).to redirect_to("/oauth/callback")
-                end
-            end
-            context "in callback" do
-                it "returns success response" do
-                    get :callback, params: valid_params
-                    expect(JSON.parse(response.body)).to eq({
-                        "success" => true,
-                        "message" => "Params are valid"
-                    })
+            context "in authorize" do
+                it "redirects to redirect_uri with code and state" do
+                    request.host = 'localhost'
+                    request.port = 3000
+                    get :authorize, params: valid_params.merge(client_config_id: client_config.id)
+                    uri = URI.parse(response.location)
+                    query_params = Rack::Utils.parse_query(uri.query)
+
+                    expect(query_params["state"]).to eq("state1")
+                    expect(query_params["code"]).to be_present
+                    expect(response).to have_http_status(:redirect)
                 end
             end
         end
