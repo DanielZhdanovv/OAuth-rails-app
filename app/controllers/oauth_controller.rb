@@ -1,8 +1,8 @@
 class OauthController < ApplicationController
     def authorize
-        @authorize_request = Oauth::AuthorizeRequest.new(authorize_params)
+        authorize_request = Oauth::AuthorizeRequest.new(authorize_params)
 
-        if @authorize_request.valid?
+        if authorize_request.valid?
 
             session[:oauth_params] = authorize_params.slice(
             :client_id,
@@ -19,7 +19,7 @@ class OauthController < ApplicationController
             end
             callback
         else
-            render json: { errors: @authorize_request.errors.full_messages }, status: :bad_request
+            render json: { errors: authorize_request.errors.full_messages }, status: :bad_request
         end
     end
 

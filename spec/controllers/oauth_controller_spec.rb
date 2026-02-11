@@ -18,6 +18,8 @@ RSpec.describe OauthController, type: :controller do
         end
 
         before do
+            request.host = 'localhost'
+            request.port = 3000
             new_user_session_path
             sign_in(user, scope: :user)
         end
@@ -106,6 +108,46 @@ RSpec.describe OauthController, type: :controller do
                     expect(response).to have_http_status(:bad_request)
                     response_body = JSON.parse(response.body)
                     expect(response_body["errors"]).to include("Code challenge method can't be blank", "Code challenge method is not included in the list")
+                end
+            end
+            context "when client_id is invalid" do
+                it "returns error" do
+                    params = valid_params.merge(client_id: "invalid_client")
+                    get :authorize, params: params
+
+                    expect(response).to have_http_status(:bad_request)
+                    response_body = JSON.parse(response.body)
+                    expect(response_body["errors"]).to include("Client is invalid")
+                end
+            end
+            context "creates authorization code with correct attributes" do
+                it "creates authorization code" do
+                    expect {
+                        get :authorize, params: valid_params.merge(client_config_id: client_config.id)
+                    }.to change(Oauth::AuthorizationCode, :count).by(1)
+
+                    auth_code = Oauth::AuthorizationCode.last
+                    expect(auth_code.user_id).to eq(user.id)
+                    expect(auth_code.client_config_id).to eq(client_config.id)
+                    expect(auth_code.code_challenge).to eq("code_challenge_12345")
+                end
+            end
+            context "it deletes session[:oauth_params] after callback" do
+                it "deletes session[:oauth_params]" do
+                    get :authorize, params: valid_params.merge(client_config_id: client_config.id)
+
+                    expect(session[:oauth_params]).to be_nil
+                end
+            end
+            context "redirects to redirect_uri with code and state after callback" do
+                it "redirects to redirect_uri with code and state" do
+                    get :authorize, params: valid_params.merge(client_config_id: client_config.id)
+                    uri = URI.parse(response.location)
+                    query_params = Rack::Utils.parse_query(uri.query)
+
+                    expect(query_params["state"]).to eq("state1")
+                    expect(query_params["code"]).to be_present
+                    expect(response).to have_http_status(:redirect)
                 end
             end
         end
