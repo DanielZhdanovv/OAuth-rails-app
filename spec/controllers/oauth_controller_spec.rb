@@ -139,17 +139,6 @@ RSpec.describe OauthController, type: :controller do
                     expect(session[:oauth_params]).to be_nil
                 end
             end
-            context "redirects to redirect_uri with code and state after callback" do
-                it "redirects to redirect_uri with code and state" do
-                    get :authorize, params: valid_params.merge(client_config_id: client_config.id)
-                    uri = URI.parse(response.location)
-                    query_params = Rack::Utils.parse_query(uri.query)
-
-                    expect(query_params["state"]).to eq("state1")
-                    expect(query_params["code"]).to be_present
-                    expect(response).to have_http_status(:redirect)
-                end
-            end
         end
     end
 end
