@@ -10,21 +10,21 @@ class OauthController < ApplicationController
             :scope,
             :state,
             :code_challenge,
-            :code_challenge_method
+            :code_challenge_method,
+            :response_type
             )
 
             unless user_signed_in?
                 redirect_to new_user_session_path
                 return
             end
-            callback
+            callback(session[:oauth_params])
         else
             render json: { errors: authorize_request.errors.full_messages }, status: :bad_request
         end
     end
 
-    def callback
-        oauth_params = session[:oauth_params]
+    def callback(oauth_params)
         client_config = Oauth::ClientConfig.find_by!(client_id: oauth_params["client_id"])
 
         authorization_code = Oauth::AuthorizationCode.create!(
@@ -37,6 +37,8 @@ class OauthController < ApplicationController
         session.delete(:oauth_params)
     end
 
+    private
+
     def after_callback_redirect_uri(redirect_uri, code, state)
         uri = URI.parse(redirect_uri)
         params = Rack::Utils.parse_query(uri.query)
@@ -47,8 +49,6 @@ class OauthController < ApplicationController
         uri.query = params.to_query
         redirect_to uri.to_s
     end
-
-    private
 
     def authorize_params
         params.permit(:response_type, :client_id, :redirect_uri, :scope, :state, :code_challenge, :code_challenge_method)
