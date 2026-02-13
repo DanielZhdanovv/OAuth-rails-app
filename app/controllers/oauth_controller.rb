@@ -14,11 +14,7 @@ class OauthController < ApplicationController
             :response_type
             )
 
-            unless user_signed_in?
-                redirect_to new_user_session_path
-                return
-            end
-            callback(session[:oauth_params])
+            redirect_to new_user_session_path
         else
             render json: { errors: authorize_request.errors.full_messages }, status: :bad_request
         end
