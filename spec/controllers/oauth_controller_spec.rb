@@ -25,16 +25,9 @@ RSpec.describe OauthController, type: :controller do
         end
         context 'with valid params' do
             context "in authorize" do
-                it "redirects to redirect_uri with code and state" do
-                    request.host = 'localhost'
-                    request.port = 3000
+                it "redirects to user login page" do
                     get :authorize, params: valid_params.merge(client_config_id: client_config.id)
-                    uri = URI.parse(response.location)
-                    query_params = Rack::Utils.parse_query(uri.query)
-
-                    expect(query_params["state"]).to eq("state1")
-                    expect(query_params["code"]).to be_present
-                    expect(response).to have_http_status(:redirect)
+                    expect(response).to redirect_to(new_user_session_path)
                 end
             end
         end
@@ -123,7 +116,7 @@ RSpec.describe OauthController, type: :controller do
             context "creates authorization code with correct attributes" do
                 it "creates authorization code" do
                     expect {
-                        get :authorize, params: valid_params.merge(client_config_id: client_config.id)
+                        get :callback, params: valid_params.merge(client_config_id: client_config.id)
                     }.to change(Oauth::AuthorizationCode, :count).by(1)
 
                     auth_code = Oauth::AuthorizationCode.last
@@ -134,7 +127,7 @@ RSpec.describe OauthController, type: :controller do
             end
             context "it deletes session[:oauth_params] after callback" do
                 it "deletes session[:oauth_params]" do
-                    get :authorize, params: valid_params.merge(client_config_id: client_config.id)
+                    get :callback, params: valid_params.merge(client_config_id: client_config.id)
 
                     expect(session[:oauth_params]).to be_nil
                 end
