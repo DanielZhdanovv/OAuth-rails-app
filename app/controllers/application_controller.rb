@@ -2,7 +2,11 @@ class ApplicationController < ActionController::Base
   before_action :configure_permitted_parameters, if: :devise_controller?
 
   def after_sign_in_path_for(resource)
-    oauth_authorize_path(session["oauth_params"])
+    if session["oauth_params"].present?
+      oauth_callback_path(session["oauth_params"])
+    else
+      root_path
+    end
   end
 
   protected

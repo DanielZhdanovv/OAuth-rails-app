@@ -24,7 +24,7 @@ class OauthController < ApplicationController
         end
     end
 
-    def callback(oauth_params)
+    def callback(oauth_params = params)
         client_config = Oauth::ClientConfig.find_by!(client_id: oauth_params["client_id"])
 
         authorization_code = Oauth::AuthorizationCode.create!(
