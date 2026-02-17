@@ -4,6 +4,7 @@ RSpec.describe OauthController, type: :controller do
     include Devise::Test::ControllerHelpers
     describe "GET #authorize" do
         let(:user) { Oauth::User.create!(first_name: 'Adam', last_name: 'Smith', email: 'test@example.com', password: 'password12345') }
+        let(:client_config) { Oauth::ClientConfig.create!(name: "Test Client", client_id: "test_client", redirect_uri: "http://localhost:3000") }
         let(:valid_params) do
             {
                 response_type: "code",
@@ -17,23 +18,16 @@ RSpec.describe OauthController, type: :controller do
         end
 
         before do
+            request.host = 'localhost'
+            request.port = 3000
             new_user_session_path
             sign_in(user, scope: :user)
         end
         context 'with valid params' do
-            context "when user visits authorize endpoint" do
-                it "returns redirect to callback" do
-                    get :authorize, params: valid_params
-                    expect(response).to redirect_to("/oauth/callback")
-                end
-            end
-            context "in callback" do
-                it "returns success response" do
-                    get :callback, params: valid_params
-                    expect(JSON.parse(response.body)).to eq({
-                        "success" => true,
-                        "message" => "Params are valid"
-                    })
+            context "in authorize" do
+                it "redirects to user login page" do
+                    get :authorize, params: valid_params.merge(client_config_id: client_config.id)
+                    expect(response).to redirect_to(new_user_session_path)
                 end
             end
         end
@@ -107,6 +101,35 @@ RSpec.describe OauthController, type: :controller do
                     expect(response).to have_http_status(:bad_request)
                     response_body = JSON.parse(response.body)
                     expect(response_body["errors"]).to include("Code challenge method can't be blank", "Code challenge method is not included in the list")
+                end
+            end
+            context "when client_id is invalid" do
+                it "returns error" do
+                    params = valid_params.merge(client_id: "invalid_client")
+                    get :authorize, params: params
+
+                    expect(response).to have_http_status(:bad_request)
+                    response_body = JSON.parse(response.body)
+                    expect(response_body["errors"]).to include("Client is invalid")
+                end
+            end
+            context "creates authorization code with correct attributes" do
+                it "creates authorization code" do
+                    expect {
+                        get :callback, params: valid_params.merge(client_config_id: client_config.id)
+                    }.to change(Oauth::AuthorizationCode, :count).by(1)
+
+                    auth_code = Oauth::AuthorizationCode.last
+                    expect(auth_code.user_id).to eq(user.id)
+                    expect(auth_code.client_config_id).to eq(client_config.id)
+                    expect(auth_code.code_challenge).to eq("code_challenge_12345")
+                end
+            end
+            context "it deletes session[:oauth_params] after callback" do
+                it "deletes session[:oauth_params]" do
+                    get :callback, params: valid_params.merge(client_config_id: client_config.id)
+
+                    expect(session[:oauth_params]).to be_nil
                 end
             end
         end
