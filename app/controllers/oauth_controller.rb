@@ -17,18 +17,18 @@ class OauthController < ApplicationController
         render json: { errors: e.model.errors.full_messages }, status: :bad_request
     end
 
-    def redirect_to_client(oauth_params = params)
+    def redirect_to_client
         callback_request = Oauth::CallbackRequest.new(authorize_params)
         callback_request.validate!
-        client_config = Oauth::ClientConfig.find_by!(client_id: oauth_params["client_id"])
+        client_config = Oauth::ClientConfig.find_by!(client_id: callback_request.attributes["client_id"])
 
         authorization_code = Oauth::AuthorizationCode.create!(
         code: SecureRandom.urlsafe_base64(32),
         user_id: current_user.id,
         client_config_id: client_config.id,
-        code_challenge: oauth_params["code_challenge"],
+        code_challenge: callback_request.attributes["code_challenge"],
         )
-        after_callback_redirect_uri(client_config["redirect_uri"], authorization_code.code, oauth_params["state"])
+        after_callback_redirect_uri(client_config["redirect_uri"], authorization_code.code, callback_request.attributes["state"])
         session.delete(:oauth_params)
     rescue ActiveModel::ValidationError => e
         render json: { errors: e.model.errors.full_messages }, status: :bad_request
