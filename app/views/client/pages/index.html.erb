@@ -1,0 +1,9 @@
+<h1>Home page</h1>
+<% if session[:client_logged_in] %>
+    <p>Welcome, client user!</p>
+    <%= link_to "Logout", client_oauth_logout_path %>
+<% else %>
+    <p>You are not logged in.</p>
+    <%= link_to "Login", client_oauth_login_path %>
+    <%= link_to "Sign up", client_oauth_user_registration_path %>
+<% end %>

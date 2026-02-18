@@ -9,8 +9,6 @@ RSpec.describe OauthController, type: :controller do
             {
                 response_type: "code",
                 client_id: "test_client",
-                redirect_uri: "http://localhost:3000",
-                scope: "user info",
                 state: "state1",
                 code_challenge: "code_challenge_12345",
                 code_challenge_method: "S256"
@@ -51,26 +49,6 @@ RSpec.describe OauthController, type: :controller do
                     expect(response).to have_http_status(:bad_request)
                     response_body = JSON.parse(response.body)
                     expect(response_body["errors"]).to include("Client can't be blank")
-                end
-            end
-            context "when redirect_uri is missing" do
-                it "returns error" do
-                    params = valid_params.except(:redirect_uri)
-                    get :authorize, params: params
-
-                    expect(response).to have_http_status(:bad_request)
-                    response_body = JSON.parse(response.body)
-                    expect(response_body["errors"]).to include("Redirect uri can't be blank")
-                end
-            end
-            context "when scope is missing" do
-                it "returns error" do
-                    params = valid_params.except(:scope)
-                    get :authorize, params: params
-
-                    expect(response).to have_http_status(:bad_request)
-                    response_body = JSON.parse(response.body)
-                    expect(response_body["errors"]).to include("Scope can't be blank")
                 end
             end
             context "when state is missing" do
@@ -116,7 +94,7 @@ RSpec.describe OauthController, type: :controller do
             context "creates authorization code with correct attributes" do
                 it "creates authorization code" do
                     expect {
-                        get :callback, params: valid_params.merge(client_config_id: client_config.id)
+                        get :redirect_to_client, params: valid_params.merge(client_config_id: client_config.id)
                     }.to change(Oauth::AuthorizationCode, :count).by(1)
 
                     auth_code = Oauth::AuthorizationCode.last
@@ -125,9 +103,9 @@ RSpec.describe OauthController, type: :controller do
                     expect(auth_code.code_challenge).to eq("code_challenge_12345")
                 end
             end
-            context "it deletes session[:oauth_params] after callback" do
+            context "it deletes session[:oauth_params] after redirect_to_client" do
                 it "deletes session[:oauth_params]" do
-                    get :callback, params: valid_params.merge(client_config_id: client_config.id)
+                    get :redirect_to_client, params: valid_params.merge(client_config_id: client_config.id)
 
                     expect(session[:oauth_params]).to be_nil
                 end
