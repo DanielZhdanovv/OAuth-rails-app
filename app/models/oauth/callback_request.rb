@@ -1,5 +1,5 @@
 module Oauth
-    class AuthorizeRequest
+    class CallbackRequest
         include ActiveModel::Model
         include ActiveModel::Attributes
 
