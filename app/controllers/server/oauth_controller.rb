@@ -1,4 +1,4 @@
-class OauthController < ApplicationController
+class Server::OauthController < ApplicationController
     def authorize
         authorize_request = Oauth::AuthorizeRequest.new(authorize_params)
         authorize_request.validate!

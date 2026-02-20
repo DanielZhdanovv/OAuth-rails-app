@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe OauthController, type: :controller do
+RSpec.describe Server::OauthController, type: :controller do
     include Devise::Test::ControllerHelpers
     describe "GET #authorize" do
         let(:user) { Oauth::User.create!(first_name: 'Adam', last_name: 'Smith', email: 'test@example.com', password: 'password12345') }

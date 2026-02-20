@@ -1,6 +1,6 @@
 require "rails_helper"
 
-RSpec.describe Client::OauthController, type: :controller do
+RSpec.describe Client::SessionsController, type: :controller do
     include Devise::Test::ControllerHelpers
     let(:user) { Oauth::User.create!(first_name: 'Adam', last_name: 'Smith', email: 'test@example.com', password: 'password12345') }
     let(:valid_state) { SecureRandom.hex(16) }
@@ -10,15 +10,15 @@ RSpec.describe Client::OauthController, type: :controller do
             context 'generates code_verifier' do
                 it 'stores code_verifier in session' do
                     get :login
-                    expect(session[:client_side_verifier]).to be_present
-                    expect(session[:client_side_verifier].length).to eq(43)
+                    expect(session[:client][:code_verifier]).to be_present
+                    expect(session[:client][:code_verifier].length).to eq(43)
                 end
             end
             context 'generates state' do
                 it 'stores state in session' do
                     get :login
-                    expect(session[:client_state]).to be_present
-                    expect(session[:client_state].length).to eq(32)
+                    expect(session[:client][:state]).to be_present
+                    expect(session[:client][:state].length).to eq(32)
                 end
             end
             context '#login redirects to server endpoint' do
@@ -28,7 +28,7 @@ RSpec.describe Client::OauthController, type: :controller do
                     redirect_url = response.location
                     expect(redirect_url).to include('response_type=code')
                     expect(redirect_url).to include('client_id=client_app_123')
-                    expect(redirect_url).to include("state=#{session[:client_state]}")
+                    expect(redirect_url).to include("state=#{session[:client][:state]}")
                     expect(redirect_url).to include('code_challenge')
                     expect(redirect_url).to include('code_challenge_method')
                 end
@@ -37,7 +37,8 @@ RSpec.describe Client::OauthController, type: :controller do
         context '#callback' do
             context 'with valid state' do
                 it 'returns success' do
-                    session[:client_state] = valid_state
+                    session[:client] = {}
+                    session[:client]["state"] = valid_state
 
                     get :callback, params: { code: 'test_code_1234', state: valid_state }
                     expect(response).to have_http_status(:ok)
@@ -45,7 +46,8 @@ RSpec.describe Client::OauthController, type: :controller do
             end
             context 'with invalid state' do
                 it 'returns error' do
-                    session[:client_state] = valid_state
+                    session[:client] = {}
+                    session[:client][:state] = valid_state
 
                     get :callback, params: { code: 'test_code_1234', state: invalid_state }
                     expect(JSON.parse(response.body)).to eq({ 'error'=>'Invalid state' })
@@ -61,13 +63,15 @@ RSpec.describe Client::OauthController, type: :controller do
         context 'GET #logout' do
             it 'redirects to devise registration page' do
                 sign_in(user, scope: :user)
-                session[:client_side_verifier] = 'test_verifier'
-                session[:clinet_state] = 'state'
+                session[:client] = {}
+                session[:client][:code_verifier] = 'test_verifier'
+                session[:client][:state] = 'state'
 
                 expect(controller).to receive(:sign_out).with(:user)
                 delete :logout
-                expect(session[:client_side_verifier]).to be_nil
-                expect(session[:client_state]).to be_nil
+                session[:client] = {}
+                expect(session[:client][:code_verifier]).to be_nil
+                expect(session[:client][:state]).to be_nil
                 expect(response).to redirect_to(client_root_path)
             end
         end

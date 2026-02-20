@@ -3,10 +3,10 @@ class ApplicationController < ActionController::Base
 
   def after_sign_in_path_for(resource)
     if session["oauth_params"].present?
-      session[:client_logged_in] = true
-      oauth_redirect_to_client_path(session["oauth_params"])
+      session[:client][:client_logged_in] = true
+      server_oauth_redirect_to_client_path(session["oauth_params"])
     else
-      root_path
+      client_root_path
     end
   end
 
