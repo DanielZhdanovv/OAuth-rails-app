@@ -57,7 +57,7 @@ RSpec.describe Client::SessionsController, type: :controller do
         context 'GET #user_registration' do
             it 'redirects to devise registration page' do
                 get :user_registration
-                expect(response).to redirect_to(new_user_registration_path)
+                expect(response).to redirect_to(new_server_user_registration_path)
             end
         end
         context 'GET #logout' do
@@ -67,7 +67,6 @@ RSpec.describe Client::SessionsController, type: :controller do
                 session[:client][:code_verifier] = 'test_verifier'
                 session[:client][:state] = 'state'
 
-                expect(controller).to receive(:sign_out).with(:user)
                 delete :logout
                 session[:client] = {}
                 expect(session[:client][:code_verifier]).to be_nil

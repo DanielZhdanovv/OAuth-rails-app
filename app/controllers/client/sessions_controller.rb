@@ -14,21 +14,21 @@ class Client::SessionsController < ApplicationController
             code_challenge: code_challenge,
             code_challenge_method: "S256"
         }
-
         redirect_to "/server/oauth/authorize?#{auth_params.to_query}"
     end
 
     def logout
-        sign_out(:user)
+        sign_out(current_server_user)
         session[:client] = {}
         redirect_to client_root_path, notice: "Logged out successfully."
     end
 
     def user_registration
-        redirect_to new_user_registration_path
+        redirect_to new_server_user_registration_path
     end
 
     def callback
+        session[:client][:client_logged_in] = true
         code = params[:code]
         state = params[:state]
         if state != session[:client]["state"]

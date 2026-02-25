@@ -12,7 +12,7 @@ class Server::OauthController < ApplicationController
             :response_type
             )
 
-        redirect_to new_user_session_path
+        redirect_to server_user_session_path
     rescue ActiveModel::ValidationError => e
         render json: { errors: e.model.errors.full_messages }, status: :bad_request
     end
@@ -24,7 +24,7 @@ class Server::OauthController < ApplicationController
 
         authorization_code = Oauth::AuthorizationCode.create!(
         code: SecureRandom.urlsafe_base64(32),
-        user_id: current_user.id,
+        user_id: current_server_user.id,
         client_config_id: client_config.id,
         code_challenge: callback_request.attributes["code_challenge"],
         )
