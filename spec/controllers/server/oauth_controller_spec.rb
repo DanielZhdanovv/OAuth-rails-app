@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe Server::OauthController, type: :controller do
     include Devise::Test::ControllerHelpers
     describe "GET #authorize" do
-        let(:user) { Oauth::User.create!(first_name: 'Adam', last_name: 'Smith', email: 'test@example.com', password: 'password12345') }
+        let(:user) { Server::User.create!(first_name: 'Adam', last_name: 'Smith', email: 'test@example.com', password: 'password12345') }
         let(:client_config) { Oauth::ClientConfig.create!(name: "Test Client", client_id: "test_client", redirect_uri: "http://localhost:3000") }
         let(:valid_params) do
             {
@@ -95,7 +95,7 @@ RSpec.describe Server::OauthController, type: :controller do
           context "creates authorization code with correct attributes" do
               it "creates authorization code" do
                   expect {
-                      get :redirect_to_client, params: valid_params.merge(client_config_id: client_config.id)
+                      get :callback, params: valid_params.merge(client_config_id: client_config.id)
                   }.to change(Oauth::AuthorizationCode, :count).by(1)
 
                   auth_code = Oauth::AuthorizationCode.last
@@ -104,9 +104,9 @@ RSpec.describe Server::OauthController, type: :controller do
                   expect(auth_code.code_challenge).to eq("code_challenge_12345")
               end
           end
-          context "it deletes session[:oauth_params] after redirect_to_client" do
+          context "it deletes session[:oauth_params] after callback" do
               it "deletes session[:oauth_params]" do
-                  get :redirect_to_client, params: valid_params.merge(client_config_id: client_config.id)
+                  get :callback, params: valid_params.merge(client_config_id: client_config.id)
 
                   expect(session[:oauth_params]).to be_nil
               end

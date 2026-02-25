@@ -1,6 +1,6 @@
 module Oauth
     class AuthorizationCode < ApplicationRecord
-        belongs_to :user
+        belongs_to :user, class_name: "Server::User"
         belongs_to :client_config
         validates :code, presence: true, uniqueness: true
         validates :code_challenge, presence: true

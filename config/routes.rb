@@ -1,8 +1,8 @@
 Rails.application.routes.draw do
   namespace :server do
-    devise_for :users, class_name: "Oauth::User"
+    devise_for :users, class_name: "Server::User"
     get "oauth/authorize", to: "oauth#authorize"
-    get "oauth/redirect_to_client", to: "oauth#redirect_to_client"
+    get "oauth/callback", to: "oauth#callback"
   end
 
   namespace :client do

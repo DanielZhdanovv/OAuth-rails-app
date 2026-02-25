@@ -17,8 +17,8 @@ class Server::OauthController < ApplicationController
         render json: { errors: e.model.errors.full_messages }, status: :bad_request
     end
 
-    def redirect_to_client
-        callback_request = Oauth::CallbackRequest.new(authorize_params)
+    def callback
+        callback_request = Oauth::CallbackRequest.new(callback_params)
         callback_request.validate!
         client_config = Oauth::ClientConfig.find_by!(client_id: callback_request.attributes["client_id"])
 
@@ -28,7 +28,7 @@ class Server::OauthController < ApplicationController
         client_config_id: client_config.id,
         code_challenge: callback_request.attributes["code_challenge"],
         )
-        after_callback_redirect_uri(client_config["redirect_uri"], authorization_code.code, callback_request.attributes["state"])
+        redirect_to_client(client_config["redirect_uri"], authorization_code.code, callback_request.attributes["state"])
         session.delete(:oauth_params)
     rescue ActiveModel::ValidationError => e
         render json: { errors: e.model.errors.full_messages }, status: :bad_request
@@ -36,7 +36,7 @@ class Server::OauthController < ApplicationController
 
     private
 
-    def after_callback_redirect_uri(redirect_uri, code, state)
+    def redirect_to_client(redirect_uri, code, state)
         uri = URI.parse(redirect_uri)
         params = Rack::Utils.parse_query(uri.query)
 
@@ -49,5 +49,9 @@ class Server::OauthController < ApplicationController
 
     def authorize_params
         params.permit(:response_type, :client_id, :state, :code_challenge, :code_challenge_method)
+    end
+
+    def callback_params
+        params.permit(:client_id, :state, :code_challenge)
     end
 end
