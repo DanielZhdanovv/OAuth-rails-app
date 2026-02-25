@@ -20,6 +20,7 @@ RSpec.describe Server::OauthController, type: :controller do
             request.port = 3000
             new_server_user_session_path
             sign_in(user, scope: :user)
+            allow(controller).to receive(:current_server_user).and_return(user)
         end
         context 'with valid params' do
             context "in authorize" do
@@ -91,25 +92,25 @@ RSpec.describe Server::OauthController, type: :controller do
                     expect(response_body["errors"]).to include("Client is invalid")
                 end
             end
-          # context "creates authorization code with correct attributes" do
-          #     it "creates authorization code" do
-          #         expect {
-          #             get :redirect_to_client, params: valid_params.merge(client_config_id: client_config.id)
-          #         }.to change(Oauth::AuthorizationCode, :count).by(1)
+          context "creates authorization code with correct attributes" do
+              it "creates authorization code" do
+                  expect {
+                      get :redirect_to_client, params: valid_params.merge(client_config_id: client_config.id)
+                  }.to change(Oauth::AuthorizationCode, :count).by(1)
 
-          #         auth_code = Oauth::AuthorizationCode.last
-          #         expect(auth_code.user_id).to eq(user.id)
-          #         expect(auth_code.client_config_id).to eq(client_config.id)
-          #         expect(auth_code.code_challenge).to eq("code_challenge_12345")
-          #     end
-          # end
-          # context "it deletes session[:oauth_params] after redirect_to_client" do
-          #     it "deletes session[:oauth_params]" do
-          #         get :redirect_to_client, params: valid_params.merge(client_config_id: client_config.id)
+                  auth_code = Oauth::AuthorizationCode.last
+                  expect(auth_code.user_id).to eq(user.id)
+                  expect(auth_code.client_config_id).to eq(client_config.id)
+                  expect(auth_code.code_challenge).to eq("code_challenge_12345")
+              end
+          end
+          context "it deletes session[:oauth_params] after redirect_to_client" do
+              it "deletes session[:oauth_params]" do
+                  get :redirect_to_client, params: valid_params.merge(client_config_id: client_config.id)
 
-          #         expect(session[:oauth_params]).to be_nil
-          #     end
-          # end
+                  expect(session[:oauth_params]).to be_nil
+              end
+          end
         end
     end
 end
