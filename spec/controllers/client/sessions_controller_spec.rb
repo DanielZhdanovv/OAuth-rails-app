@@ -13,11 +13,6 @@ RSpec.describe Client::SessionsController, type: :controller do
                 subject
                 expect(session[:client][:code_verifier]).to be_present
                 expect(session[:client][:code_verifier].length).to eq(43)
-            end
-        end
-        context 'generates state' do
-            it 'stores state in session' do
-                subject
                 expect(session[:client][:state]).to be_present
                 expect(session[:client][:state].length).to eq(32)
             end
@@ -65,14 +60,12 @@ RSpec.describe Client::SessionsController, type: :controller do
             end
         end
     end
-    describe 'GET #user_registration' do
         context 'GET #user_registration' do
             it 'redirects to devise registration page' do
                 get :user_registration
                 expect(response).to redirect_to(new_server_user_registration_path)
             end
         end
-    end
     describe 'GET #logout' do
         subject { get :logout }
         context 'after logout' do
