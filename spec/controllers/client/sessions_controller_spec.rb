@@ -15,10 +15,6 @@ RSpec.describe Client::SessionsController, type: :controller do
                 expect(session[:client][:code_verifier].length).to eq(43)
             end
         end
-    end
-
-    describe 'GET #login' do
-        subject { get :login }
         context 'generates state' do
             it 'stores state in session' do
                 subject
@@ -26,9 +22,6 @@ RSpec.describe Client::SessionsController, type: :controller do
                 expect(session[:client][:state].length).to eq(32)
             end
         end
-    end
-    describe 'GET #login' do
-        subject { get :login }
         context 'redirects to server endpoint' do
             it 'builds required params' do
                 subject
@@ -42,35 +35,47 @@ RSpec.describe Client::SessionsController, type: :controller do
             end
         end
     end
-    context '#callback' do
+    describe 'GET #callback' do
+        let(:params) { { code:, state: } }
+        let(:code) { 'test_code_1234' }
+        let(:state) { valid_state }
+
+        subject { get :callback, params: }
+
         context 'with valid state' do
-            it 'returns success' do
+            before do
                 session[:client] = {}
                 session[:client]["state"] = valid_state
+            end
 
-                get :callback, params: { code: 'test_code_1234', state: valid_state }
+            it 'returns success' do
+                subject
                 expect(response).to have_http_status(:ok)
             end
         end
         context 'with invalid state' do
-            it 'returns error' do
+            before do
                 session[:client] = {}
-                session[:client][:state] = valid_state
+                session[:client]["state"] = invalid_state
+            end
 
-                get :callback, params: { code: 'test_code_1234', state: invalid_state }
+            it 'returns error' do
+                subject
                 expect(JSON.parse(response.body)).to eq({ 'error'=>'Invalid state' })
             end
         end
     end
-    context 'GET #user_registration' do
-        it 'redirects to devise registration page' do
-            get :user_registration
-            expect(response).to redirect_to(new_server_user_registration_path)
+    describe 'GET #user_registration' do
+        context 'GET #user_registration' do
+            it 'redirects to devise registration page' do
+                get :user_registration
+                expect(response).to redirect_to(new_server_user_registration_path)
+            end
         end
     end
-    describe 'GET #login' do
+    describe 'GET #logout' do
         subject { get :logout }
-        context 'GET #logout' do
+        context 'after logout' do
             it 'redirects to devise registration page' do
                 sign_in(user, scope: :user)
                 session[:client] = {}
