@@ -8,8 +8,8 @@ RSpec.describe Client::SessionsController, type: :controller do
 
     describe 'GET #login' do
         subject { get :login }
-        context 'generates code_verifier' do
-            it 'stores code_verifier in session' do
+        context 'generates code_verifier and state' do
+            it 'stores code_verifier and state in session' do
                 subject
                 expect(session[:client][:code_verifier]).to be_present
                 expect(session[:client][:code_verifier].length).to eq(43)
