@@ -3,7 +3,7 @@ require "rails_helper"
 RSpec.describe Oauth::AuthorizationCode, type: :model do
   subject(:auth_code) { described_class.new(code:, user:, client_config:, code_challenge:) }
 
-  let(:user) { Oauth::User.create!(first_name: "Adam", last_name: "Smith", email: "test@example.com", password: "password12345") }
+  let(:user) { Server::User.create!(first_name: "Adam", last_name: "Smith", email: "test@example.com", password: "password12345") }
   let(:client_config) { Oauth::ClientConfig.create!(name: "Test Client", client_id: "test_client", redirect_uri: "http://localhost:3000") }
   let(:code) { SecureRandom.urlsafe_base64(32) }
   let(:code_challenge) { "some-code-challenge" }

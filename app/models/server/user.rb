@@ -1,4 +1,4 @@
-module Oauth
+module Server
   class User < ApplicationRecord
     self.table_name = "users"
     devise :database_authenticatable, :registerable,
