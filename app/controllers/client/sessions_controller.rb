@@ -1,11 +1,14 @@
+require "http"
 class Client::SessionsController < ApplicationController
     def login
         code_verifier = SecureRandom.urlsafe_base64(32)
-        code_challenge = Digest::SHA256.hexdigest(code_verifier)
+        digest = Digest::SHA256.digest(code_verifier)
+        code_challenge = Base64.urlsafe_encode64(digest, padding: false)
         state = SecureRandom.hex(16)
         session[:client] = {}
         session[:client][:code_verifier] = code_verifier
         session[:client][:state] = state
+
 
         auth_params = {
             response_type: "code",
@@ -35,6 +38,42 @@ class Client::SessionsController < ApplicationController
             render json: { error: "Invalid state" }, status: :bad_request
             return
         end
-        render json: { message: "Callback received successfully" }, status: :ok
+        request_tokens(code, state)
+    end
+
+    def refresh_tokens
+            response = HTTP.headers(accept: "application/json").post("http://localhost:3000/server/oauth/token", form: {
+            grant_type: "refresh_token",
+            client_id: "client_app_123",
+            refresh_token: session["client"]["refresh_token"]
+        })
+
+        if response.status.success?
+            token_data = JSON.parse(response.body)
+            session[:client][:access_token] = token_data["access_token"]
+            session[:client][:refresh_token] = token_data["refresh_token"]
+            redirect_to client_root_path, notice: "Your refreshed your token!"
+        else
+            render json: { error: "it didnt work" }
+        end
+    end
+
+    private
+
+    def request_tokens(code, state)
+            response = HTTP.headers(accept: "application/json").post("http://localhost:3000/server/oauth/token", form: {
+            grant_type: "authorization_code",
+            code: code,
+            client_id: "client_app_123",
+            code_verifier: session[:client]["code_verifier"]
+        })
+        if response.status.success?
+            token_data = JSON.parse(response.body)
+            session[:client][:access_token] = token_data["access_token"]
+            session[:client][:refresh_token] = token_data["refresh_token"]
+            redirect_to client_root_path
+        else
+            render json: { error: "it didnt work" }
+        end
     end
 end

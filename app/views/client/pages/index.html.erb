@@ -1,9 +1,12 @@
 <h1>Home page</h1>
 <% if session[:client]&.dig("client_logged_in") %>
-    <p>Welcome, client user!</p>
+    <h1>Welcome, client user!</h1>
     <%= link_to "Logout", client_session_logout_path %>
+    <p> Refresh Token: <%= session["client"]&.dig("refresh_token") %> </p>
+    <p> Access Token: <%= session["client"]&.dig("access_token") %> </p>
+    <%= link_to "Refresh Token", client_session_refresh_tokens_path %>
 <% else %>
-    <p>You are not logged in.</p>
+    <h1>You are not logged in.</h1>
     <%= link_to "Login", client_session_login_path %>
     <%= link_to "Sign up", client_session_user_registration_path %>
 <% end %>

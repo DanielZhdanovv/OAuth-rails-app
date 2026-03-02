@@ -16,12 +16,21 @@ module Oauth
         validates :code_challenge_method, presence: true, inclusion: { in: [ "S256" ] }
         validate :client_exists
 
-    def client_exists
-        errors.add(:client_id, "is invalid") if client_id.present? && !Oauth::ClientConfig.exists?(client_id:)
-    end
+        def client_exists
+            errors.add(:client_id, "is invalid") if client_config.blank?
+        end
 
         def initialize(params = {})
             super(params)
+        end
+
+        def session_object
+            { client_id:, state:, code_challenge:, redirect_uri: client_config.redirect_uri, client_config_id: client_config.id }
+        end
+        private
+
+        def client_config
+            @client_config ||= Oauth::ClientConfig.find_by(client_id:)
         end
     end
 end
