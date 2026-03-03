@@ -47,7 +47,7 @@ class Server::OauthController < ApplicationController
             return
         end
 
-        validate_pkce(auth_code[:code_challenge], token_request.attributes["code_verifier"])
+        return unless validate_pkce(auth_code[:code_challenge], token_request.attributes["code_verifier"])
 
         access_token, refresh_token = generate_tokens(auth_code.user, client)
         auth_code.destroy
@@ -59,6 +59,8 @@ class Server::OauthController < ApplicationController
         }
     rescue ActiveModel::ValidationError => e
         render json: { errors: e.model.errors.full_messages }, status: :bad_request
+    rescue ActiveRecord::RecordNotFound
+        render json: { errors: "Record not found" }, status: :bad_request
     end
 
     def handle_refresh_token
@@ -73,12 +75,12 @@ class Server::OauthController < ApplicationController
             return
         end
 
-        unless !old_refresh_token.revoked?
+        if old_refresh_token.revoked?
             render json: { error: "Refresh token has been revoked" }, status: :bad_request
             return
         end
 
-        unless !old_refresh_token.expired?
+        if old_refresh_token.expired?
             render json: { error: "Refresh token has been expired" }, status: :bad_request
             return
         end
@@ -89,6 +91,10 @@ class Server::OauthController < ApplicationController
             expires_in: 900,
             refresh_token: refresh_token.token
         }
+    rescue ActiveModel::ValidationError => e
+        render json: { errors: e.model.errors.full_messages }, status: :bad_request
+    rescue ActiveRecord::RecordNotFound
+        render json: { errors: "Record not found" }, status: :bad_request
     end
 
     def validate_pkce(stored_challenge, code_verifier)
@@ -97,8 +103,9 @@ class Server::OauthController < ApplicationController
 
         unless stored_challenge == computed_server_challenge
             render json: { error: "Failed PKCE verification" }, status: :bad_request
-            nil
+            return false
         end
+        true
     end
     def generate_tokens(user, client, rotate = false)
         jti_var = SecureRandom.uuid
@@ -149,9 +156,6 @@ class Server::OauthController < ApplicationController
         params.permit(:response_type, :client_id, :state, :code_challenge, :code_challenge_method)
     end
 
-    def callback_params
-        params.permit(:client_id, :state, :code_challenge)
-    end
     def token_params
         params.permit(:grant_type, :code, :client_id, :code_verifier)
     end

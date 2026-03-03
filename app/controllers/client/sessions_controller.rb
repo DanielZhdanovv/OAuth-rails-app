@@ -54,7 +54,7 @@ class Client::SessionsController < ApplicationController
             session[:client][:refresh_token] = token_data["refresh_token"]
             redirect_to client_root_path, notice: "Your refreshed your token!"
         else
-            render json: { error: "it didnt work" }
+            render json: { error: response.status }
         end
     end
 
@@ -73,7 +73,7 @@ class Client::SessionsController < ApplicationController
             session[:client][:refresh_token] = token_data["refresh_token"]
             redirect_to client_root_path
         else
-            render json: { error: "it didnt work" }
+            render json: { error: response.status }
         end
     end
 end
