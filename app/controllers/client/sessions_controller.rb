@@ -52,9 +52,9 @@ class Client::SessionsController < ApplicationController
             token_data = JSON.parse(response.body)
             session[:client][:access_token] = token_data["access_token"]
             session[:client][:refresh_token] = token_data["refresh_token"]
-            redirect_to client_root_path, notice: "Your refreshed your token!"
+            redirect_to client_root_path, notice: "You refreshed your token!!!"
         else
-            render json: { error: response.status }
+            render json: { error: "Error refreshing token" }
         end
     end
 
@@ -73,7 +73,7 @@ class Client::SessionsController < ApplicationController
             session[:client][:refresh_token] = token_data["refresh_token"]
             redirect_to client_root_path
         else
-            render json: { error: response.status }
+            render json: { error: "Error requesting token" }
         end
     end
 end
