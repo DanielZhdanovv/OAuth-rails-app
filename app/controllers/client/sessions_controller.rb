@@ -61,12 +61,17 @@ class Client::SessionsController < ApplicationController
     private
 
     def request_tokens(code, state)
+        unless state == session[:client]["state"]
+            render json: { error: "Error requesting token" }
+            return
+        end
             response = HTTP.headers(accept: "application/json").post("http://localhost:3000/server/oauth/token", form: {
             grant_type: "authorization_code",
             code: code,
             client_id: "client_app_123",
             code_verifier: session[:client]["code_verifier"]
         })
+
         if response.status.success?
             token_data = JSON.parse(response.body)
             session[:client][:access_token] = token_data["access_token"]

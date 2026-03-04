@@ -36,6 +36,7 @@ class Server::OauthController < ApplicationController
 
     private
 
+    # Issue access_token and refresh_token when client logs in
     def handle_auth_code
         token_request = Oauth::TokenRequest.new(token_params)
         token_request.validate!
@@ -63,6 +64,8 @@ class Server::OauthController < ApplicationController
         render json: { errors: "Record not found" }, status: :bad_request
     end
 
+    # Issue new access_token with updated expiration time
+    # Issue refresh_token with remaining expiration time
     def handle_refresh_token
         old_refresh_token = Oauth::RefreshToken.find_by(token: params[:refresh_token])
         client = Oauth::ClientConfig.find_by!(client_id: params[:client_id])

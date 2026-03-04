@@ -80,6 +80,7 @@ RSpec.describe Client::SessionsController, type: :controller do
         end
     end
     describe 'GET #refresh_tokens' do
+        subject { get :refresh_tokens }
         context 'with valid params' do
             before do
                 session[:client] = {}
@@ -100,7 +101,7 @@ RSpec.describe Client::SessionsController, type: :controller do
                     }.to_json,
                     headers: { "Content-Type" => "application/json" }
                 )
-                get :refresh_tokens
+                subject
 
                 expect(session[:client][:access_token]).to eq("new_access_token_300")
                 expect(session[:client][:refresh_token]).to eq("new_refresh_token_300")
