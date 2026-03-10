@@ -12,7 +12,7 @@ class Client::SessionsController < ApplicationController
 
         auth_params = {
             response_type: "code",
-            client_id: "client_app_123",
+            client_id: OAUTH_CONFIG[:client_id],
             state: state,
             code_challenge: code_challenge,
             code_challenge_method: "S256"
@@ -42,9 +42,9 @@ class Client::SessionsController < ApplicationController
     end
 
     def refresh_tokens
-            response = HTTP.headers(accept: "application/json").post("http://localhost:3000/server/oauth/token", form: {
+            response = HTTP.headers(accept: "application/json").post(OAUTH_CONFIG[:token_url], form: {
             grant_type: "refresh_token",
-            client_id: "client_app_123",
+            client_id: OAUTH_CONFIG[:client_id],
             refresh_token: session["client"]["refresh_token"]
         })
 
@@ -68,7 +68,7 @@ class Client::SessionsController < ApplicationController
             response = HTTP.headers(accept: "application/json").post("http://localhost:3000/server/oauth/token", form: {
             grant_type: "authorization_code",
             code: code,
-            client_id: "client_app_123",
+            client_id: OAUTH_CONFIG[:client_id],
             code_verifier: session[:client]["code_verifier"]
         })
 

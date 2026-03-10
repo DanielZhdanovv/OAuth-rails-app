@@ -67,26 +67,11 @@ class Server::OauthController < ApplicationController
     # Issue new access_token with updated expiration time
     # Issue refresh_token with remaining expiration time
     def handle_refresh_token
-        old_refresh_token = Oauth::RefreshToken.find_by(token: params[:refresh_token])
+        refresh_request = Oauth::RefreshRequest.new(refresh_params)
+        refresh_request.validate!
+        old_refresh_token = Oauth::RefreshToken.find_by!(token: params[:refresh_token])
         client = Oauth::ClientConfig.find_by!(client_id: params[:client_id])
-        unless client
-            render json: { error: "Invalid client" }, status: :bad_request
-            return
-        end
-        unless old_refresh_token
-            render json: { error: "Refresh token not found" }, status: :bad_request
-            return
-        end
 
-        if old_refresh_token.revoked?
-            render json: { error: "Refresh token has been revoked" }, status: :bad_request
-            return
-        end
-
-        if old_refresh_token.expired?
-            render json: { error: "Refresh token has been expired" }, status: :bad_request
-            return
-        end
         access_token, refresh_token = generate_tokens(old_refresh_token.user, client, true)
         render json: {
             access_token: access_token,
@@ -161,5 +146,9 @@ class Server::OauthController < ApplicationController
 
     def token_params
         params.permit(:grant_type, :code, :client_id, :code_verifier)
+    end
+
+    def refresh_params
+        params.permit(:refresh_token, :client_id)
     end
 end

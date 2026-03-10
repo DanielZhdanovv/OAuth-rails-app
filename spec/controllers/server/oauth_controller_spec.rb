@@ -237,7 +237,7 @@ RSpec.describe Server::OauthController, type: :controller do
                 it "returns error" do
                     subject
                     response_body = JSON.parse(response.body)
-                    expect(response_body["error"]).to eq("Refresh token not found")
+                    expect(response_body["errors"]).to eq([ "Refresh token can't be blank" ])
                 end
             end
             context "refresh token is invalid" do
@@ -245,7 +245,7 @@ RSpec.describe Server::OauthController, type: :controller do
                 it "returns error" do
                     subject
                     response_body = JSON.parse(response.body)
-                    expect(response_body["error"]).to eq("Refresh token not found")
+                    expect(response_body["errors"]).to eq([ "Refresh token not found" ])
                 end
             end
             context "client is invalid" do
@@ -253,7 +253,7 @@ RSpec.describe Server::OauthController, type: :controller do
                 it "returns error" do
                     subject
                     response_body = JSON.parse(response.body)
-                    expect(response_body["errors"]).to eq("Record not found")
+                    expect(response_body["errors"]).to eq([ "Client is invalid" ])
                 end
             end
             context "refresh_token is revoked" do
@@ -261,7 +261,7 @@ RSpec.describe Server::OauthController, type: :controller do
                     refresh_token.revoke!
                     subject
                     response_body = JSON.parse(response.body)
-                    expect(response_body["error"]).to eq("Refresh token has been revoked")
+                    expect(response_body["errors"]).to eq([ "Refresh token has been revoked" ])
                 end
             end
             context "refresh_token is expired" do
@@ -269,7 +269,7 @@ RSpec.describe Server::OauthController, type: :controller do
                     refresh_token.update!(expires_at: 2.days.ago)
                     subject
                     response_body = JSON.parse(response.body)
-                    expect(response_body["error"]).to eq("Refresh token has been expired")
+                    expect(response_body["errors"]).to eq([ "Refresh token has been expired" ])
                 end
             end
         end
