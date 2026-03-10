@@ -65,7 +65,7 @@ class Client::SessionsController < ApplicationController
             render json: { error: "Error requesting token" }
             return
         end
-            response = HTTP.headers(accept: "application/json").post("http://localhost:3000/server/oauth/token", form: {
+            response = HTTP.headers(accept: "application/json").post(OAUTH_CONFIG[:token_url], form: {
             grant_type: "authorization_code",
             code: code,
             client_id: OAUTH_CONFIG[:client_id],
