@@ -1,15 +1,18 @@
+require "http"
 class Client::SessionsController < ApplicationController
     def login
         code_verifier = SecureRandom.urlsafe_base64(32)
-        code_challenge = Digest::SHA256.hexdigest(code_verifier)
+        digest = Digest::SHA256.digest(code_verifier)
+        code_challenge = Base64.urlsafe_encode64(digest, padding: false)
         state = SecureRandom.hex(16)
         session[:client] = {}
         session[:client][:code_verifier] = code_verifier
         session[:client][:state] = state
 
+
         auth_params = {
             response_type: "code",
-            client_id: "client_app_123",
+            client_id: OAUTH_CONFIG[:client_id],
             state: state,
             code_challenge: code_challenge,
             code_challenge_method: "S256"
@@ -35,6 +38,56 @@ class Client::SessionsController < ApplicationController
             render json: { error: "Invalid state" }, status: :bad_request
             return
         end
-        render json: { message: "Callback received successfully" }, status: :ok
+        request_tokens(code, state)
+    end
+
+    def refresh_tokens
+            response = HTTP.headers(accept: "application/json").post(OAUTH_CONFIG[:token_url], form: {
+            grant_type: "refresh_token",
+            client_id: OAUTH_CONFIG[:client_id],
+            refresh_token: session["client"]["refresh_token"]
+        })
+
+        if response.status.success?
+            token_data = JSON.parse(response.body)
+            session[:client][:access_token] = token_data["access_token"]
+            session[:client][:refresh_token] = token_data["refresh_token"]
+            redirect_to client_root_path, notice: "You refreshed your token!!!"
+        else
+            render json: { error: "Error refreshing token" }
+        end
+    end
+
+    def user_info
+        response = HTTP.auth("Bearer #{session[:client]['access_token']}").get(OAUTH_CONFIG[:user_url])
+        if response.status.success?
+            render json: JSON.parse(response.body)
+        else
+            render json: { error: "Error fetching user info" }, status: :bad_request
+        end
+    end
+
+    private
+
+    def request_tokens(code, state)
+        unless state == session[:client]["state"]
+            render json: { error: "Error requesting token" }
+            return
+        end
+            response = HTTP.headers(accept: "application/json").post(OAUTH_CONFIG[:token_url], form: {
+            grant_type: "authorization_code",
+            code: code,
+            client_id: OAUTH_CONFIG[:client_id],
+            code_verifier: session[:client]["code_verifier"]
+        })
+
+        if response.status.success?
+            token_data = JSON.parse(response.body)
+            session[:client][:access_token] = token_data["access_token"]
+            session[:client][:refresh_token] = token_data["refresh_token"]
+            redirect_to client_root_path
+        else
+            render json: { error: "Error requesting token" }
+        end
     end
 end
