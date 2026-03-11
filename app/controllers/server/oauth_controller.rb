@@ -99,7 +99,7 @@ class Server::OauthController < ApplicationController
         jti_var = SecureRandom.uuid
 
         access_token_payload = {
-            user_id: user,
+            user_id: user.id,
             client_config_id: client.id,
             expires_at: 15.minutes.from_now,
             jti: jti_var, # Unique id
@@ -111,7 +111,7 @@ class Server::OauthController < ApplicationController
             old_refresh_token = Oauth::RefreshToken.find_by(token: params[:refresh_token])
             refresh_token = Oauth::RefreshToken.create!(
                 token: SecureRandom.urlsafe_base64(32),
-                user: user,
+                user_id: user.id,
                 client_config_id: client.id,
                 expires_at: old_refresh_token.expires_at,
                 jti: jti_var

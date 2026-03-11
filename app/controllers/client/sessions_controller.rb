@@ -58,6 +58,15 @@ class Client::SessionsController < ApplicationController
         end
     end
 
+    def user_info
+        response = HTTP.auth("Bearer #{session[:client]['access_token']}").get(OAUTH_CONFIG[:user_url])
+        if response.status.success?
+            render json: JSON.parse(response.body)
+        else
+            render json: { error: "Error fetching user info" }, status: :bad_request
+        end
+    end
+
     private
 
     def request_tokens(code, state)
