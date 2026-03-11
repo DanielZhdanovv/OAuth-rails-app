@@ -23,13 +23,13 @@ module Oauth
     end
 
     def refresh_token_not_expired
-        token = Oauth::RefreshToken.find_by(token: refresh_token)
-        errors.add(:refresh_token, "has been expired") if token.present? && token.expired?
+        @stored_refresh_token ||= Oauth::RefreshToken.find_by(token: refresh_token)
+        errors.add(:refresh_token, "has been expired") if @stored_refresh_token.present? && @stored_refresh_token.expired?
     end
 
     def refresh_token_not_revoked
-        token = Oauth::RefreshToken.find_by(token: refresh_token)
-        errors.add(:refresh_token, "has been revoked") if token.present? && token.revoked?
+        @stored_refresh_token ||= Oauth::RefreshToken.find_by(token: refresh_token)
+        errors.add(:refresh_token, "has been revoked") if @stored_refresh_token.present? && @stored_refresh_token.revoked?
     end
 
         def initialize(params = {})

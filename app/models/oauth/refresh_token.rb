@@ -8,7 +8,7 @@ module Oauth
 
 
         def expired?
-            expires_at < Time.now
+            expires_at < Time.current
         end
 
         def revoked?

@@ -61,10 +61,6 @@ class Client::SessionsController < ApplicationController
     private
 
     def request_tokens(code, state)
-        unless state == session[:client]["state"]
-            render json: { error: "Error requesting token" }
-            return
-        end
             response = HTTP.headers(accept: "application/json").post(OAUTH_CONFIG[:token_url], form: {
             grant_type: "authorization_code",
             code: code,

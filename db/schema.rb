@@ -40,6 +40,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_27_150013) do
     t.datetime "updated_at", null: false
     t.integer "user_id"
     t.index ["client_config_id"], name: "index_refresh_tokens_on_client_config_id"
+    t.index ["jti"], name: "index_refresh_tokens_on_jti", unique: true
+    t.index ["token"], name: "index_refresh_tokens_on_token", unique: true
     t.index ["user_id"], name: "index_refresh_tokens_on_user_id"
   end
 
@@ -65,4 +67,5 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_27_150013) do
   add_foreign_key "authorization_codes", "client_configs"
   add_foreign_key "authorization_codes", "users"
   add_foreign_key "refresh_tokens", "client_configs"
+  add_foreign_key "refresh_tokens", "users"
 end

@@ -44,14 +44,12 @@ class Server::OauthController < ApplicationController
 
         client = Oauth::ClientConfig.find_by!(client_id: params[:client_id])
         unless client && auth_code.client_config_id == client.id
-            render json: { error: "Invalid client" }, status: :bad_request
-            return
+            raise StandardError, "Invalid client"
         end
 
         return unless validate_pkce(auth_code[:code_challenge], token_request.attributes["code_verifier"])
 
         access_token, refresh_token = generate_tokens(auth_code.user, client)
-        auth_code.destroy
         render json: {
             access_token: access_token,
             token_type: "Bearer",
@@ -62,6 +60,8 @@ class Server::OauthController < ApplicationController
         render json: { errors: e.model.errors.full_messages }, status: :bad_request
     rescue ActiveRecord::RecordNotFound
         render json: { errors: "Record not found" }, status: :bad_request
+    ensure
+        auth_code&.destroy
     end
 
     # Issue new access_token with updated expiration time
@@ -99,7 +99,7 @@ class Server::OauthController < ApplicationController
         jti_var = SecureRandom.uuid
 
         access_token_payload = {
-            user_id: user,
+            user_id: user.id,
             client_config_id: client.id,
             expires_at: 15.minutes.from_now,
             jti: jti_var, # Unique id
