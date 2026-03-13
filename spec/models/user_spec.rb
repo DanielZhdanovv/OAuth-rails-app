@@ -1,6 +1,8 @@
-require "rails_helper"
+# frozen_string_literal: true
 
-RSpec.describe Server::User, type: :model do
+require 'rails_helper'
+
+RSpec.describe Server::User, type: :model do # rubocop:disable Metrics/BlockLength
   subject(:user) do
     Server::User.new(
       first_name: first_name,
@@ -15,7 +17,7 @@ RSpec.describe Server::User, type: :model do
   let(:email)      { 'test@example.com' }
   let(:password)   { 'password123' }
 
-  describe 'user validations' do
+  describe 'user validations' do # rubocop:disable Metrics/BlockLength
     context 'with valid attributes' do
       it 'is valid' do
         expect(user).to be_valid

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_02_02_184950) do
+ActiveRecord::Schema[8.1].define(version: 2026_02_27_150013) do
   create_table "authorization_codes", force: :cascade do |t|
     t.integer "client_config_id", null: false
     t.string "code"
@@ -28,6 +28,21 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_02_184950) do
     t.string "name"
     t.string "redirect_uri"
     t.datetime "updated_at", null: false
+  end
+
+  create_table "refresh_tokens", force: :cascade do |t|
+    t.integer "client_config_id", null: false
+    t.datetime "created_at", null: false
+    t.datetime "expires_at", null: false
+    t.string "jti", null: false
+    t.datetime "revoked_at"
+    t.string "token"
+    t.datetime "updated_at", null: false
+    t.integer "user_id"
+    t.index ["client_config_id"], name: "index_refresh_tokens_on_client_config_id"
+    t.index ["jti"], name: "index_refresh_tokens_on_jti", unique: true
+    t.index ["token"], name: "index_refresh_tokens_on_token", unique: true
+    t.index ["user_id"], name: "index_refresh_tokens_on_user_id"
   end
 
   create_table "users", force: :cascade do |t|
@@ -51,4 +66,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_02_02_184950) do
 
   add_foreign_key "authorization_codes", "client_configs"
   add_foreign_key "authorization_codes", "users"
+  add_foreign_key "refresh_tokens", "client_configs"
+  add_foreign_key "refresh_tokens", "users"
 end
