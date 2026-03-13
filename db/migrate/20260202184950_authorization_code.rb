@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+
+# This migration creates the authorization_codes table with the necessary columns
 class AuthorizationCode < ActiveRecord::Migration[8.1]
   def change
     create_table :authorization_codes do |t|

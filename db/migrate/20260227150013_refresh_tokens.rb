@@ -1,3 +1,6 @@
+# frozen_string_literal: true
+
+# This migration creates the refresh_tokens table with the necessary columns and indexes
 class RefreshTokens < ActiveRecord::Migration[8.1]
   def change
     create_table :refresh_tokens do |t|

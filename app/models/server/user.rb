@@ -1,8 +1,11 @@
+# frozen_string_literal: true
+
 module Server
+  # The User model represents a user in the system and includes Devise modules for authentication
   class User < ApplicationRecord
-    self.table_name = "users"
+    self.table_name = 'users'
     devise :database_authenticatable, :registerable,
-          :recoverable, :rememberable, :validatable, :trackable
+           :recoverable, :rememberable, :validatable, :trackable
 
     validates :first_name, presence: true
     validates :last_name, presence: true
