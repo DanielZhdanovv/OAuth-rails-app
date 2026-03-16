@@ -60,6 +60,9 @@ RSpec.describe Server::User, type: :model do # rubocop:disable Metrics/BlockLeng
     end
   end
   describe 'GET #show' do
+    before do
+      allow(Rails.application.credentials).to receive(:secret_key_base).and_return('test_secret_key_base')
+    end
     context 'with valid token' do
       it 'returns user details' do
         user.save!
