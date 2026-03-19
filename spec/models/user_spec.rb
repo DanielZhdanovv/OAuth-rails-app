@@ -17,6 +17,15 @@ RSpec.describe Server::User, type: :model do # rubocop:disable Metrics/BlockLeng
   let(:email)      { 'test@example.com' }
   let(:password)   { 'password123' }
 
+  let(:valid_token) do
+    payload = { user_id: user.id, exp: 1.hour.from_now.to_i }
+    JWT.encode(payload, Rails.application.credentials.secret_key_base, 'HS256')
+  end
+  let(:expired_token) do
+    payload = { user_id: user.id, exp: 1.hour.ago.to_i }
+    JWT.encode(payload, Rails.application.credentials.secret_key_base, 'HS256')
+  end
+
   describe 'user validations' do # rubocop:disable Metrics/BlockLength
     context 'with valid attributes' do
       it 'is valid' do
@@ -47,6 +56,30 @@ RSpec.describe Server::User, type: :model do # rubocop:disable Metrics/BlockLeng
         it 'is not valid' do
           expect(user).not_to be_valid
         end
+      end
+    end
+  end
+  describe 'GET #show' do
+    before do
+      allow(Rails.application.credentials).to receive(:secret_key_base).and_return('test_secret_key_base')
+    end
+    context 'with valid token' do
+      it 'returns user details' do
+        user.save!
+        decoded_token = JWT.decode(valid_token, Rails.application.credentials.secret_key_base, true, algorithm: 'HS256')
+        user_id = decoded_token[0]['user_id']
+        expect(user_id).to eq(user.id)
+        expect(user.first_name).to eq(first_name)
+        expect(user.last_name).to eq(last_name)
+        expect(user.email).to eq(email)
+      end
+    end
+    context 'with expired token' do
+      it 'raises JWT::ExpiredSignature error' do
+        user.save!
+        expect do
+          JWT.decode(expired_token, Rails.application.credentials.secret_key_base, true, algorithm: 'HS256')
+        end.to raise_error(JWT::ExpiredSignature)
       end
     end
   end

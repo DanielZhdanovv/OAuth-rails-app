@@ -5,6 +5,7 @@
     <p> Refresh Token: <%= session["client"]&.dig("refresh_token") %> </p>
     <p> Access Token: <%= session["client"]&.dig("access_token") %> </p>
     <%= link_to "Refresh Token", client_session_refresh_tokens_path %>
+    <%= link_to "Request User Information", client_session_user_info_path %>
 <% else %>
     <h1>You are not logged in.</h1>
     <%= link_to "Login", client_session_login_path %>

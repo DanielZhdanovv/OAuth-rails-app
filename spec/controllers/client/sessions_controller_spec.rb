@@ -136,4 +136,45 @@ RSpec.describe Client::SessionsController, type: :controller do # rubocop:disabl
       end
     end
   end
+  describe 'GET #user_info' do # rubocop:disable Metrics/BlockLength
+    subject { get :user_info }
+    context 'with valid access token' do
+      before do
+        session[:client] = {}
+        session[:client][:access_token] = 'access_token_123'
+      end
+      it 'returns user info' do
+        stub_request(:get, 'http://localhost:3000/server/oauth/user')
+          .with(
+            headers: {
+              'Authorization' => "Bearer #{session[:client]['access_token']}"
+            }
+          )
+          .to_return(status: 200, body: { 'first_name' => 'Adam', 'last_name' => 'Smith',
+                                          'email' => 'adam.smith@example.com' }.to_json, headers: {})
+        subject
+        expect(response).to have_http_status(:success)
+        expect(response.parsed_body).to eq({ 'first_name' => 'Adam', 'last_name' => 'Smith',
+                                             'email' => 'adam.smith@example.com' })
+      end
+    end
+    context 'with invalid access token' do
+      before do
+        session[:client] = {}
+        session[:client][:access_token] = 'invalid_access_token'
+      end
+      it 'returns error' do
+        stub_request(:get, 'http://localhost:3000/server/oauth/user')
+          .with(
+            headers: {
+              'Authorization' => "Bearer #{session[:client]['access_token']}"
+            }
+          )
+          .to_return(status: 400, body: { 'error' => 'Error fetching user info' }.to_json, headers: {})
+        subject
+        expect(response).to have_http_status(:bad_request)
+        expect(response.parsed_body).to eq({ 'error' => 'Error fetching user info' })
+      end
+    end
+  end
 end
